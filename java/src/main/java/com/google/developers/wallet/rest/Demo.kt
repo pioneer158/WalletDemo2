@@ -22,6 +22,8 @@ fun main(args: Array<String>) {
 
     //向(userId, classId)卡片推送消息,前提需要(userId、classId)卡片已经创建
     //demo.sendMessage(userId, classId)
+
+    //更新卡片
     //demo.updateObject(userId, objectSuffix, null)
 
     //生成JWT,返回客户端
