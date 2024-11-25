@@ -34,7 +34,7 @@ private fun genericTrain() {
     //demo.sendMessage(userId, classSuffix)
 
     //更新卡片
-    demo.updateObject(userId, objectSuffix, null,false)
+    demo.updateObject(userId, objectSuffix, null,true)
 
     //生成JWT,返回客户端
     val tokenPair = demo.createJWTNewObjects(userId, classSuffix, objectSuffix)
@@ -44,11 +44,9 @@ private fun genericTrain() {
 private fun genericFlight() {
     val demo = DemoGeneric()
 
-    //创建卡片,会先检测卡片是否已经创建(通过检查userId、classId、objectId是否改变),如果已经创建,不再重复创建
     demo.createClass(userId, classSuffix)
     demo.createObjectWithFlight(userId, classSuffix, objectSuffix)
     demo.updateObject(userId,objectSuffix,null,true)
-    //生成JWT,返回客户端
     val tokenPair = demo.createJWTNewObjects(userId, classSuffix, objectSuffix)
     saveTokenToFile(tokenPair.second)
 }

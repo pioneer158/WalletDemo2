@@ -606,6 +606,9 @@ public class DemoGeneric {
 
         if (flightCard) {
             LOGI(TAG, "卡片已经创建,更新信息为机票");
+            updatedObject.setCardTitle(new LocalizedString()
+                    .setDefaultValue(
+                            new TranslatedString().setLanguage("en-US").setValue("Flight Card")));
             updatedObject.setTextModulesData(
                     List.of(
                             new TextModuleData().setId("left").setHeader("FlightNo").setBody("FD3005"),
@@ -617,6 +620,9 @@ public class DemoGeneric {
             );
         } else {
             LOGI(TAG, "卡片已经创建,更新信息为火车票");
+            updatedObject.setCardTitle(new LocalizedString()
+                    .setDefaultValue(
+                            new TranslatedString().setLanguage("en-US").setValue("National Tail")));
             updatedObject.setTextModulesData(
                     List.of(
                             new TextModuleData().setId("left").setHeader("TICKET TYPE").setBody("Anytime\nDay Single"),
