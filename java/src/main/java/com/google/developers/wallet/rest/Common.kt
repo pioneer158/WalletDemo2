@@ -1,5 +1,8 @@
 package com.google.developers.wallet.rest
 
+import com.google.api.services.walletobjects.model.LocalizedString
+import com.google.api.services.walletobjects.model.TranslatedString
+
 object Common {
     // Regular Colors
     private const val ANSI_RESET: String = "\u001B[0m"
@@ -32,5 +35,13 @@ object Common {
         println("$ANSI_YELLOW$className : $message$ANSI_RESET")
     }
 
+    fun getLocalizedString(msg: String): LocalizedString {
+        return LocalizedString()
+            .setDefaultValue(
+                TranslatedString()
+                    .setLanguage("en-US")
+                    .setValue(msg)
+            )
+    }
 
 }

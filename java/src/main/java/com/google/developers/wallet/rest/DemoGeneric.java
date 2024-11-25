@@ -41,6 +41,7 @@ import java.util.*;
 
 import static com.google.developers.wallet.rest.Common.LOGI;
 import static com.google.developers.wallet.rest.DemoKt.TAG;
+import static java.util.List.of;
 // [END imports]
 
 /**
@@ -79,7 +80,7 @@ public class DemoGeneric {
     public void auth() throws Exception {
         credentials =
                 GoogleCredentials.fromStream(new FileInputStream(keyFilePath))
-                        .createScoped(List.of(WalletobjectsScopes.WALLET_OBJECT_ISSUER));
+                        .createScoped(of(WalletobjectsScopes.WALLET_OBJECT_ISSUER));
         credentials.refresh();
 
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
@@ -120,9 +121,75 @@ public class DemoGeneric {
 
         // See link below for more information on required properties
         // https://developers.google.com/wallet/generic/rest/v1/genericclass
-        GenericClass newClass = new GenericClass().setId(String.format("%s.%s", issuerId, classSuffix));
+        GenericClass newClass = new GenericClass().setId(String.format("%s.%s", issuerId, classSuffix))
+                .setAppLinkData(new AppLinkData()
+                        .setAndroidAppLinkInfo(
+                                new AppLinkDataAppLinkInfo()
+                                        .setAppTarget(
+                                                new AppLinkDataAppLinkInfoAppTarget()
+                                                        .setTargetUri(
+                                                                new Uri().setId("appLink").setUri("ctripglobal://mytrip/home?wallet=Google")
+                                                        ))))
+                .setClassTemplateInfo(
+                        new ClassTemplateInfo()
+                                .setCardTemplateOverride(
+                                        new CardTemplateOverride()
+                                                .setCardRowTemplateInfos(List.of(
+                                                                new CardRowTemplateInfo()
+                                                                        .setThreeItems(
+                                                                                new CardRowThreeItems()
+                                                                                        .setStartItem(
+                                                                                                new TemplateItem()
+                                                                                                        .setFirstValue(
+                                                                                                                new FieldSelector()
+                                                                                                                        .setFields(List.of(
+                                                                                                                                new FieldReference()
+                                                                                                                                        .setFieldPath("object.textModulesData['left']")
+                                                                                                                        ))))
+                                                                                        .setMiddleItem(
+                                                                                                new TemplateItem()
+                                                                                                        .setFirstValue(
+                                                                                                                new FieldSelector()
+                                                                                                                        .setFields(List.of(
+                                                                                                                                new FieldReference()
+                                                                                                                                        .setFieldPath("object.textModulesData['mid']")
+                                                                                                                        ))))
+                                                                                        .setEndItem(
+                                                                                                new TemplateItem()
+                                                                                                        .setFirstValue(
+                                                                                                                new FieldSelector()
+                                                                                                                        .setFields(List.of(
+                                                                                                                                new FieldReference()
+                                                                                                                                        .setFieldPath("object.textModulesData['right']")
+                                                                                                                        )))
+                                                                                        )
+                                                                        ),
+                                                                new CardRowTemplateInfo()
+                                                                        .setTwoItems(
+                                                                                new CardRowTwoItems()
+                                                                                        .setStartItem(
+                                                                                                new TemplateItem()
+                                                                                                        .setFirstValue(
+                                                                                                                new FieldSelector()
+                                                                                                                        .setFields(List.of(
+                                                                                                                                new FieldReference()
+                                                                                                                                        .setFieldPath("object.textModulesData['left2']")
+                                                                                                                        ))))
+                                                                                        .setEndItem(
+                                                                                                new TemplateItem()
+                                                                                                        .setFirstValue(
+                                                                                                                new FieldSelector()
+                                                                                                                        .setFields(List.of(
+                                                                                                                                new FieldReference()
+                                                                                                                                        .setFieldPath("object.textModulesData['right2']")
+                                                                                                                        )))
+                                                                                        )
+                                                                        )
+
+                                                        )
+                                                ))
+                );
         GenericClass response = service.genericclass().insert(newClass).execute();
-        System.out.println("Class insert response");
         System.out.println(response.toPrettyString());
         return response.getId();
     }
@@ -145,14 +212,13 @@ public class DemoGeneric {
         AddMessageRequest request = new AddMessageRequest()
                 .setMessage(
                         new Message()
-                                .setHeader("Trip.com, message Header")
-                                .setBody("Trip.com message Body with a <a href=\"https://wallet.google\">Hyperlink<\\a>")
+                                .setHeader("Trip.com Ticket, Auto Link Pass Update")
+                                .setBody("Trip.com Ticket <a href=\"https://wallet.google\">Auto Link Pass Update<\\a>")
                                 .setId("message Id")
                                 .setMessageType("TEXT_AND_NOTIFY")
                 );
         GenericClassAddMessageResponse response = service.genericclass().addmessage(resId, request).execute();
         LOGI(TAG, "消息已经发生:" + request.getMessage());
-        LOGI(TAG, "消息响应:" + response);
     }
 
 
@@ -299,6 +365,7 @@ public class DemoGeneric {
             }
         }
 
+
         // See link below for more information on required properties
         // https://developers.google.com/wallet/generic/rest/v1/genericobject
         GenericObject newObject =
@@ -308,24 +375,15 @@ public class DemoGeneric {
                         .setState("ACTIVE")
                         .setTextModulesData(
                                 List.of(
-                                        new TextModuleData()
-                                                .setHeader("Text module header")
-                                                .setBody("Text module body")
-                                                .setId("TEXT_MODULE_ID")))
-                        .setLinksModuleData(
-                                new LinksModuleData()
-                                        .setUris(
-                                                Arrays.asList(
-                                                        new Uri()
-                                                                .setUri("http://maps.google.com/")
-                                                                .setDescription("Link module URI description")
-                                                                .setId("LINK_MODULE_URI_ID"),
-                                                        new Uri()
-                                                                .setUri("tel:6505555555")
-                                                                .setDescription("Link module tel description")
-                                                                .setId("LINK_MODULE_TEL_ID"))))
+                                        new TextModuleData().setId("left").setHeader("TICKET TYPE").setBody("Anytime\nDay Single"),
+                                        new TextModuleData().setId("mid").setHeader("VALID FROM").setBody("30 Aug\n2023"),
+                                        new TextModuleData().setId("right").setHeader("ROUTE").setBody("PERMITTED"),
+                                        new TextModuleData().setId("left2").setHeader("ADULT").setBody("-"),
+                                        new TextModuleData().setId("right2").setHeader("VALID UNTIL").setBody("30 Aug 2023")
+                                )
+                        )
                         .setImageModulesData(
-                                List.of(
+                                of(
                                         new ImageModuleData()
                                                 .setMainImage(
                                                         new Image()
@@ -340,22 +398,25 @@ public class DemoGeneric {
                                                                                                 .setLanguage("en-US")
                                                                                                 .setValue("Image module description"))))
                                                 .setId("IMAGE_MODULE_ID")))
-                        .setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk"))
+                        .setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk").setAlternateText("CPEF26FFFL3"))
                         .setCardTitle(
                                 new LocalizedString()
                                         .setDefaultValue(
-                                                new TranslatedString().setLanguage("en-US").setValue("Generic card title XXXCXCXC")))
+                                                new TranslatedString().setLanguage("en-US").setValue("National Tail")))
                         .setHeader(
                                 new LocalizedString()
                                         .setDefaultValue(
-                                                new TranslatedString().setLanguage("en-US").setValue("Generic header")))
-                        .setHexBackgroundColor("#ff85f4")
+                                                new TranslatedString().setLanguage("en-US").setValue("WUH to PVG")))
+                        .setSubheader(new LocalizedString()
+                                .setDefaultValue(
+                                        new TranslatedString().setLanguage("en-US").setValue("Wuhan to Shanghai")))
+                        .setHexBackgroundColor("#0e3a0e")
                         .setLogo(
                                 new Image()
                                         .setSourceUri(
                                                 new ImageUri()
                                                         .setUri(
-                                                                "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg"))
+                                                                "https://images.unsplash.com/photo-1532105956626-9569c03602f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=660&h=660"))
                                         .setContentDescription(
                                                 new LocalizedString()
                                                         .setDefaultValue(
@@ -365,26 +426,93 @@ public class DemoGeneric {
                         .setAppLinkData(new AppLinkData().
                                 setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
                                         .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
-                                                .setTargetUri(new Uri().setUri("ctripglobal://mytrip/home?wallet=Google").setDescription("TestURL").setId("TestId"))
+                                                .setTargetUri(new Uri().setUri("ctripglobal://mytrip/home?wallet=Google").setId("appLink"))
                                         )
                                 ));
-//                        .setAppLinkData(new AppLinkData().
-//                                setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
-//                                        .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
-//                                                .setPackageName("ctrip.english")
-//                                        )
-//                                ));
 
         GenericObject response = service.genericobject().insert(newObject).execute();
-
-        System.out.println("Object insert response");
-        System.out.println(response.toPrettyString());
-
         return response.getId();
     }
     // [END createObject]
 
     // [START updateObject]
+
+    public String createObjectWithFlight(String issuerId, String classSuffix, String objectSuffix)
+            throws IOException {
+        // Check if the object exists
+        try {
+            service.genericobject().get(String.format("%s.%s", issuerId, objectSuffix)).execute();
+            LOGI(TAG, String.format("Object %s.%s already exists!", issuerId, objectSuffix));
+            return String.format("%s.%s", issuerId, objectSuffix);
+        } catch (GoogleJsonResponseException ex) {
+            if (ex.getStatusCode() != 404) {
+                // Something else went wrong...
+                ex.printStackTrace();
+                return String.format("%s.%s", issuerId, objectSuffix);
+            }
+        }
+
+
+        // See link below for more information on required properties
+        // https://developers.google.com/wallet/generic/rest/v1/genericobject
+        GenericObject newObject =
+                new GenericObject()
+                        .setId(String.format("%s.%s", issuerId, objectSuffix))
+                        .setClassId(String.format("%s.%s", issuerId, classSuffix))
+                        .setState("ACTIVE")
+                        .setTextModulesData(
+                                List.of(
+                                        new TextModuleData().setId("left").setHeader("FlightNo").setBody("FD3005"),
+                                        new TextModuleData().setId("mid").setHeader("Terminal/Gate").setBody("T1/84"),
+                                        new TextModuleData().setId("right").setHeader("Passenger").setBody("Chen"),
+                                        new TextModuleData().setId("left2").setHeader("Departure").setBody("29 Aug 2023"),
+                                        new TextModuleData().setId("right2").setHeader("Arrive").setBody("30 Aug 2023")
+                                )
+                        )
+                        .setImageModulesData(
+                                of(
+                                        new ImageModuleData()
+                                                .setMainImage(
+                                                        new Image()
+                                                                .setSourceUri(
+                                                                        new ImageUri()
+                                                                                .setUri(
+                                                                                        "http://farm4.staticflickr.com/3738/12440799783_3dc3c20606_b.jpg"))
+                                                                .setContentDescription(
+                                                                        new LocalizedString()
+                                                                                .setDefaultValue(
+                                                                                        new TranslatedString()
+                                                                                                .setLanguage("en-US")
+                                                                                                .setValue("Image module description"))))
+                                                .setId("IMAGE_MODULE_ID")))
+                        .setBarcode(new Barcode().setType("TEXT_ONLY").setValue("EYIV9N"))
+                        .setCardTitle(
+                                new LocalizedString()
+                                        .setDefaultValue(
+                                                new TranslatedString().setLanguage("en-US").setValue("Thai AirAsia")))
+                        .setHeader(
+                                new LocalizedString()
+                                        .setDefaultValue(
+                                                new TranslatedString().setLanguage("en-US").setValue("DMK to HKT")))
+                        .setSubheader(new LocalizedString()
+                                .setDefaultValue(
+                                        new TranslatedString().setLanguage("en-US").setValue("Don Mueang to Phuket")))
+                        .setHexBackgroundColor("#0e3a0e")
+                        .setLogo(
+                                new Image()
+                                        .setSourceUri(
+                                                new ImageUri()
+                                                        .setUri("https://pic.english.c-ctrip.com/airline_logo/2x/fd.png"))
+                                        .setContentDescription(
+                                                new LocalizedString()
+                                                        .setDefaultValue(
+                                                                new TranslatedString()
+                                                                        .setLanguage("en-US")
+                                                                        .setValue("Generic card logo"))));
+
+        GenericObject response = service.genericobject().insert(newObject).execute();
+        return response.getId();
+    }
 
     public String createObjectWithObjectId(String issuerId, String classSuffix, String objectId)
             throws IOException {
@@ -428,7 +556,8 @@ public class DemoGeneric {
                                                         .setDefaultValue(
                                                                 new TranslatedString()
                                                                         .setLanguage("en-US")
-                                                                        .setValue("Generic card logo"))))
+                                                                        .setValue("Generic card logo")))
+                        )
                         .setAppLinkData(new AppLinkData().
                                 setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
                                         .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
@@ -452,7 +581,7 @@ public class DemoGeneric {
      * @param objectSuffix Developer-defined unique ID for this pass object.
      * @return The pass object ID: "{issuerId}.{objectSuffix}"
      */
-    public String updateObject(String issuerId, String objectSuffix, String linkedObjectId) throws IOException {
+    public String updateObject(String issuerId, String objectSuffix, String linkedObjectId, boolean flightCard) throws IOException {
         GenericObject updatedObject;
 
         // Check if the object exists
@@ -474,31 +603,34 @@ public class DemoGeneric {
         }
 
         LOGI(TAG, "卡片已经创建,可以更新");
-        // Object exists
-        // Update the object by adding a link
-        Uri newLink =
-                new Uri()
-                        .setUri("https://developers.google.com/wallet")
-                        .setDescription("New link description");
-        if (updatedObject.getLinksModuleData() == null) {
-            // LinksModuleData was not set on the original object
-            updatedObject.setLinksModuleData(new LinksModuleData().setUris(List.of(newLink)));
+
+        if (flightCard) {
+            LOGI(TAG, "卡片已经创建,更新信息为机票");
+            updatedObject.setTextModulesData(
+                    List.of(
+                            new TextModuleData().setId("left").setHeader("FlightNo").setBody("FD3005"),
+                            new TextModuleData().setId("mid").setHeader("Terminal/Gate").setBody("T2 / 84"),
+                            new TextModuleData().setId("right").setHeader("Passenger").setBody("Chen"),
+                            new TextModuleData().setId("left2").setHeader("Departure").setBody("2 Jul,15:30"),
+                            new TextModuleData().setId("right2").setHeader("Arrive").setBody("2 Jul,19:30")
+                    )
+            );
         } else {
-            updatedObject.getLinksModuleData().getUris().add(newLink);
+            LOGI(TAG, "卡片已经创建,更新信息为火车票");
+            updatedObject.setTextModulesData(
+                    List.of(
+                            new TextModuleData().setId("left").setHeader("TICKET TYPE").setBody("Anytime\nDay Single"),
+                            new TextModuleData().setId("mid").setHeader("VALID FROM").setBody("30 Aug\n2023"),
+                            new TextModuleData().setId("right").setHeader("ROUTE").setBody("PERMITTED"),
+                            new TextModuleData().setId("left2").setHeader("ADULT").setBody("-"),
+                            new TextModuleData().setId("right2").setHeader("VALID UNTIL").setBody("30 Aug 2023")
+                    )
+            );
         }
-
-        //更新Title
-        updatedObject.setCardTitle(
-                new LocalizedString()
-                        .setDefaultValue(
-                                new TranslatedString().setLanguage("en-US").setValue("EEEEEEEEE")));
-        //更新QRCode
-        updatedObject.setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk&wallet=Google"));
-
 
         //AutoPass linkedObjectId
         if (linkedObjectId != null) {
-            updatedObject.setLinkedObjectIds(List.of(linkedObjectId));
+            updatedObject.setLinkedObjectIds(of(linkedObjectId));
         }
 
         GenericObject response =
@@ -508,9 +640,20 @@ public class DemoGeneric {
                         .execute();
 
         System.out.println("Object update response");
-        System.out.println(response.toPrettyString());
 
         return response.getId();
+    }
+
+    private TextModuleData createTextModuleData(String tag) {
+        return new TextModuleData()
+                .setHeader(tag)
+                .setBody(String.format("%s.%s BodyBodyBodyBodyBodyBodyBodyBodyBody", tag, tag))
+                .setId(tag)
+                .setLocalizedBody(new LocalizedString()
+                        .setDefaultValue(new TranslatedString()
+                                .setLanguage("en-US")
+                                .setValue(String.format("%s.%s LocalizedBodyLocalizedBodyLocalizedBodyLocalizedBodyLocalizedBodyLocalizedBody", tag, tag))
+                        ));
     }
 
     public void updateObjectAutoLinkPass(String issuerId, String classSuffix, String objectSuffix) throws IOException {
@@ -543,7 +686,7 @@ public class DemoGeneric {
 
         LOGI(TAG, "将linked Object链接到Main Object");
 
-        updateObject(issuerId, objectSuffix, linkObjectId);
+        updateObject(issuerId, objectSuffix, linkObjectId, false);
     }
 
 
@@ -678,10 +821,10 @@ public class DemoGeneric {
                         .setClassId(String.format("%s.%s", issuerId, classSuffix))
                         .setState("ACTIVE")
                         .setTextModulesData(
-                                List.of(
+                                of(
                                         new TextModuleData()
-                                                .setHeader("Text module header")
-                                                .setBody("Text module body")
+                                                .setHeader("Text module header11")
+                                                .setBody("Text module body11")
                                                 .setId("TEXT_MODULE_ID")))
                         .setLinksModuleData(
                                 new LinksModuleData()
@@ -696,7 +839,7 @@ public class DemoGeneric {
                                                                 .setDescription("Link module tel description")
                                                                 .setId("LINK_MODULE_TEL_ID"))))
                         .setImageModulesData(
-                                List.of(
+                                of(
                                         new ImageModuleData()
                                                 .setMainImage(
                                                         new Image()
@@ -748,13 +891,13 @@ public class DemoGeneric {
         HashMap<String, Object> claims = new HashMap<String, Object>();
         claims.put("iss", ((ServiceAccountCredentials) credentials).getClientEmail());
         claims.put("aud", "google");
-        claims.put("origins", List.of("www.example.com"));
+        claims.put("origins", of("www.example.com"));
         claims.put("typ", "savetowallet");
 
         // Create the Google Wallet payload and add to the JWT
         HashMap<String, Object> payload = new HashMap<String, Object>();
-        payload.put("genericClasses", List.of(newClass));
-        payload.put("genericObjects", List.of(newObject));
+        payload.put("genericClasses", of(newClass));
+        payload.put("genericObjects", of(newObject));
         claims.put("payload", payload);
 
         // The service account credentials are used to sign the JWT
@@ -794,7 +937,7 @@ public class DemoGeneric {
         // Event tickets
         objectsToAdd.put(
                 "eventTicketObjects",
-                List.of(
+                of(
                         new EventTicketObject()
                                 .setId(String.format("%s.%s", issuerId, "EVENT_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "EVENT_CLASS_SUFFIX"))));
@@ -802,7 +945,7 @@ public class DemoGeneric {
         // Boarding passes
         objectsToAdd.put(
                 "flightObjects",
-                List.of(
+                of(
                         new FlightObject()
                                 .setId(String.format("%s.%s", issuerId, "FLIGHT_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "FLIGHT_CLASS_SUFFIX"))));
@@ -810,7 +953,7 @@ public class DemoGeneric {
         // Generic passes
         objectsToAdd.put(
                 "genericObjects",
-                List.of(
+                of(
                         new GenericObject()
                                 .setId(String.format("%s.%s", issuerId, "GENERIC_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "GENERIC_CLASS_SUFFIX"))));
@@ -818,7 +961,7 @@ public class DemoGeneric {
         // Gift cards
         objectsToAdd.put(
                 "giftCardObjects",
-                List.of(
+                of(
                         new GiftCardObject()
                                 .setId(String.format("%s.%s", issuerId, "GIFT_CARD_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "GIFT_CARD_CLASS_SUFFIX"))));
@@ -826,7 +969,7 @@ public class DemoGeneric {
         // Loyalty cards
         objectsToAdd.put(
                 "loyaltyObjects",
-                List.of(
+                of(
                         new LoyaltyObject()
                                 .setId(String.format("%s.%s", issuerId, "LOYALTY_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "LOYALTY_CLASS_SUFFIX"))));
@@ -834,7 +977,7 @@ public class DemoGeneric {
         // Offers
         objectsToAdd.put(
                 "offerObjects",
-                List.of(
+                of(
                         new OfferObject()
                                 .setId(String.format("%s.%s", issuerId, "OFFER_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "OFFER_CLASS_SUFFIX"))));
@@ -842,7 +985,7 @@ public class DemoGeneric {
         // Transit passes
         objectsToAdd.put(
                 "transitObjects",
-                List.of(
+                of(
                         new TransitObject()
                                 .setId(String.format("%s.%s", issuerId, "TRANSIT_OBJECT_SUFFIX"))
                                 .setClassId(String.format("%s.%s", issuerId, "TRANSIT_CLASS_SUFFIX"))));
@@ -851,7 +994,7 @@ public class DemoGeneric {
         HashMap<String, Object> claims = new HashMap<String, Object>();
         claims.put("iss", ((ServiceAccountCredentials) credentials).getClientEmail());
         claims.put("aud", "google");
-        claims.put("origins", List.of("www.example.com"));
+        claims.put("origins", of("www.example.com"));
         claims.put("typ", "savetowallet");
         claims.put("payload", objectsToAdd);
 
@@ -918,7 +1061,7 @@ public class DemoGeneric {
                                                                             .setLanguage("en-US")
                                                                             .setValue("Hero image description"))))
                             .setTextModulesData(
-                                    List.of(
+                                    of(
                                             new TextModuleData()
                                                     .setHeader("Text module header")
                                                     .setBody("Text module body")
@@ -936,7 +1079,7 @@ public class DemoGeneric {
                                                                     .setDescription("Link module tel description")
                                                                     .setId("LINK_MODULE_TEL_ID"))))
                             .setImageModulesData(
-                                    List.of(
+                                    of(
                                             new ImageModuleData()
                                                     .setMainImage(
                                                             new Image()
